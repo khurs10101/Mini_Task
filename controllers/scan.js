@@ -15,10 +15,13 @@ exports.scanDB= (req, res, next)=>{
                     //get the number of rows
                     getNoOfRows()
                             .then(([result,metadata])=>{
-                                no_of_rows= result;
+                                no_of_rows= result[0].COUNT;
                                 getAllTableRows(no_of_rows, curr_comm_id)
-                                    .then(([result, metadata])=>{
+                                    .then(([result, metadata])=> {
+
+                                        //console.log(result);
                                         waitAndWatch(result);
+
                                     })
                             })
                 })
@@ -26,13 +29,14 @@ exports.scanDB= (req, res, next)=>{
 
 function getAllTableRows(no_of_rows, curr_comm_id){
 
-    curr_row_number= curr_comm_id;
-    rem_rows= no_of_rows - curr_row_number;
+    curr_row_number= curr_comm_id-1;
+    rem_rows= no_of_rows-curr_row_number;
+    
     return sequelize.query('SELECT * FROM comments LIMIT '+rem_rows+' OFFSET '+curr_row_number);
 }
 
 function getNoOfRows(){
-    return sequelize.query('SELECT COUNT(*) FROM comments');
+    return sequelize.query('SELECT COUNT(*) AS COUNT FROM comments');
 }
 
 //scan the log table first
@@ -67,11 +71,11 @@ const waitAndWatch= (fakeArray)=>{
     p= p.then(()=>{
         console.log(fakeArray[i-1].comment_text);
         text= fakeArray[i-1].comment_text.trim();
-        comm_id= fakeArray[i-1].id.trim();
+        comm_id= fakeArray[i-1].id;
         comm_length= text.length;
         console.log(comm_length);
         // update comment table with length
-        updateCommentsLength(comm_id, comm_length);
+        // 
         // write the length to log database
         
         console.log("wait 30 sec: ");
