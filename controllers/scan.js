@@ -8,8 +8,31 @@ exports.scanDB= (req, res, next)=>{
     //scan the log table
     scanLogTable()
                 .then(([result, metadata])=>{
-                    curr_comm_id= result.comm_id;
+                    if(result.comm_id>0)
+                        curr_comm_id= result.comm_id;
+                    else
+                        curr_comm_id=1;
+                    //get the number of rows
+                    getNoOfRows()
+                            .then(([result,metadata])=>{
+                                no_of_rows= result;
+                                getAllTableRows(no_of_rows, curr_comm_id)
+                                    .then(([result, metadata])=>{
+                                        waitAndWatch(result);
+                                    })
+                            })
                 })
+}
+
+function getAllTableRows(no_of_rows, curr_comm_id){
+
+    curr_row_number= curr_comm_id;
+    rem_rows= no_of_rows - curr_row_number;
+    return sequelize.query('SELECT * FROM comments LIMIT '+rem_rows+' OFFSET '+curr_row_number);
+}
+
+function getNoOfRows(){
+    return sequelize.query('SELECT COUNT(*) FROM comments');
 }
 
 //scan the log table first
