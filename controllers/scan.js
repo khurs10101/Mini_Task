@@ -5,20 +5,32 @@ const sequelize= require('../databases/db');
 exports.scanDB= (req, res, next)=>{
 
     console.log("scanDB in invoked");
-    //testing
-    sequelize.query("SELECT * FROM comments")
+    //scan the log table
+    scanLogTable()
                 .then(([result, metadata])=>{
-                    waitAndWatch(result);
-                });
+                    curr_comm_id= result.comm_id;
+                })
 }
 
 //scan the log table first
 function scanLogTable(){
-
+    return sequelize.query('SELECT * FROM logs ORDER BY updatedAt DESC LIMIT 1');
 }
 
-function updateLog(comm_id, comm_length){
+function updateLog(comm_id){
+    sequelize.query('INSERT INTO logs (comm_id) VALUES ('+comm_id+')')
+                .then(([result, metadata])=>{
 
+                })
+                .catch();
+}
+
+function updateCommentsLength(comm_id, comm_length){
+    sequelize.query('UPDATE comments SET comment_length = '+comm_length+' WHERE id = '+comm_id)
+                .then(([result, metadata])=>{
+
+                })
+                .catch();
 }
 
 //wait30 and 1 function
@@ -33,10 +45,12 @@ const waitAndWatch= (fakeArray)=>{
         console.log(fakeArray[i-1].comment_text);
         text= fakeArray[i-1].comment_text.trim();
         comm_id= fakeArray[i-1].id.trim();
-        text_length= text.length;
-        console.log(text_length);
+        comm_length= text.length;
+        console.log(comm_length);
+        // update comment table with length
+        updateCommentsLength(comm_id, comm_length);
         // write the length to log database
-        updateLog();
+        
         console.log("wait 30 sec: ");
         return new Promise((resolve, reject)=>{
             setTimeout(resolve,1000);

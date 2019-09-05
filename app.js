@@ -1,6 +1,7 @@
 const express= require('express');
 const Post= require('./models/posts');
 const Comment= require('./models/comments');
+const LogTable= require('./models/log');
 const app= express();
 
 const queryRoute= require('./routes/query');
@@ -21,6 +22,15 @@ Comment
         console.log(result);
     })
     .catch(err=> {
+        console.log(err);
+    });
+
+LogTable
+    .sync()
+    .then(result=>{
+        console.log(result)
+    })
+    .catch(err=>{
         console.log(err);
     });
 

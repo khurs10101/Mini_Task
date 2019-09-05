@@ -8,3 +8,5 @@ const LogTable= sequelize.define('logs',{
     }
 
 });
+
+module.exports= LogTable;
