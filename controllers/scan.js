@@ -8,10 +8,12 @@ exports.scanDB= (req, res, next)=>{
     //scan the log table
     scanLogTable()
                 .then(([result, metadata])=>{
-                    if(result.comm_id>0)
-                        curr_comm_id= result.comm_id;
-                    else
+                    if(result[0].comm_id>0){
+                        curr_comm_id= result[0].comm_id;
+                    }
+                    else{
                         curr_comm_id=1;
+                    }
                     //get the number of rows
                     getNoOfRows()
                             .then(([result,metadata])=>{
@@ -41,7 +43,15 @@ function getNoOfRows(){
 
 //scan the log table first
 function scanLogTable(){
-    return sequelize.query('SELECT * FROM logs ORDER BY updatedAt DESC LIMIT 1');
+    return sequelize.query('SELECT COUNT(*) AS COUNT FROM logs')
+            .then(([result, metadata])=>{
+                if(result[0].COUNT>0){
+                    return sequelize.query('SELECT * FROM logs ORDER BY updatedAt DESC LIMIT 1');
+                }else{
+                    return sequelize.query('SELECT COUNT(*) AS comm_id FROM logs');
+                }
+        });
+    
 }
 
 function updateLog(comm_id){
@@ -53,18 +63,16 @@ function updateLog(comm_id){
 }
 
 function updateCommentsLength(comm_id, comm_length){
-    sequelize.query('UPDATE comments SET comment_length = '+comm_length+' WHERE id = '+comm_id)
-                .then(([result, metadata])=>{
+    return sequelize.query('UPDATE comments SET comment_length = '+comm_length+' WHERE id = '+comm_id);
+}
 
-                })
-                .catch();
+function updateLogTable(comm_id){
+    return sequelize.query('INSERT INTO logs (comm_id, createdAt, updatedAt) VALUES ('+comm_id+', NOW(), NOW())');
 }
 
 //wait30 and 1 function
 const waitAndWatch= (fakeArray)=>{
-
     
-
     p=Promise.resolve();
 
     for(let i=1; i<fakeArray.length; i++){
@@ -75,7 +83,14 @@ const waitAndWatch= (fakeArray)=>{
         comm_length= text.length;
         console.log(comm_length);
         // update comment table with length
-        // 
+        updateCommentsLength(comm_id,comm_length)
+            .then(([result, metadata])=>{
+                //if success update the log table 
+                updateLogTable(comm_id)
+                    .catch(err=>{
+                        console.log(err);
+                    });
+            })
         // write the length to log database
         
         console.log("wait 30 sec: ");
