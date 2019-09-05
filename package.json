@@ -1,0 +1,18 @@
+{
+  "name": "mini_task",
+  "version": "1.0.0",
+  "description": "Count the length of comment",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Khurshid Alam Bhuyan",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mariadb": "^2.1.0",
+    "mysql2": "^1.7.0",
+    "sequelize": "^5.18.0",
+    "sequelize-cli": "^5.5.1"
+  }
+}
